@@ -2,9 +2,3 @@
 .Rhistory
 .RData
 .Ruserdata
-
-
-# Ignore large files and outputs
-*.tif
-*.csv
-*.RData
