@@ -8,5 +8,3 @@
 *.tif
 *.csv
 *.RData
-raw_data/*
-analysis_data/yearwise/*
