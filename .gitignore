@@ -3,17 +3,6 @@
 .RData
 .Ruserdata
 
-# Ignore all contents of raw_data and analysis_data/yearwise
-raw_data/*
-analysis_data/yearwise/*
-
-# Exclude the folders themselves
-!raw_data/
-!analysis_data/yearwise/
-
-# Allow README or placeholder files to be included
-!raw_data/.gitkeep
-!analysis_data/yearwise/.gitkeep
 
 # Ignore large files and outputs
 *.tif
