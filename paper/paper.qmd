@@ -28,8 +28,10 @@ Nocturnal lighting, primarily from artificial sources like residential and indus
 
 ## Data Extraction and Cleaning 
 
-The main task in preparing the dataset was the extraction of night-time light (NTL) intensity values from the GeoTIFF files. Using the `rasterio` package in Python, we processed annual TIFF files to extract Digital Number (DN) values, which represent the intensity of light, along with their corresponding latitude and longitude coordinates. This provided a spatial dataset that detailed the distribution of NTL intensity globally for each year.
+The main task in preparing the dataset was the extraction of night-time light (NTL) intensity values from the GeoTIFF files. Using the 'Rasterio' package [@raster] in Python, we processed annual TIFF files to extract Digital Number (DN) values, which represent the intensity of light, along with their corresponding latitude and longitude coordinates. This provided a spatial dataset that detailed the distribution of NTL intensity globally for each year.
 
 To associate each observation with a specific country, the extracted data were merged with a global shapefile of country boundaries using spatial join techniques. Each latitude-longitude pair was assigned to the country in which it was located. Observations without an assigned country, primarily from international waters, were removed since they could not be attributed to a specific region and often represented ambiguous sources, such as ships or vessels.
 
 The dataset had only four columns—latitude, longitude, DN, and country—so minimal cleaning was required. The primary cleaning step was to remove observations with missing country values. Finally, to create an aggregate annual measure of NTL intensity for each country, all observations within a country were summed to calculate the total light emitted annually. This resulted in a dataset where each row represented a country, and the sum of NTL intensity served as our primary independent variable. Each year's dataset thus provides a single measure of total NTL emitted by a country for that year, facilitating longitudinal analysis.
+
+# Reference
