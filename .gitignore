@@ -16,7 +16,7 @@ analysis_data/yearwise/*
 !analysis_data/yearwise/.gitkeep
 
 # Ignore large files and outputs
-*.tiff
+*.tif
 *.csv
 *.RData
 raw_data/*
