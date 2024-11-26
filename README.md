@@ -1,6 +1,6 @@
 # Night-Time Light and Economic Growth Correlation
 ## Purpose
-This project aims to analyze the relationship between night-time light (NTL) intensity and economic growth indicators (e.g., GDP). While significant research has already explored the use of NTL as a proxy for economic activity, this study expands the scope by including all available years, including the latest data, for a comprehensive temporal analysis.
+This project aims to analyze the relationship between night-time light (NTL) intensity and economic indicators (e.g., GDP). While significant research has already explored the use of NTL as a proxy for economic activity, this study expands the scope by including all available years, including the latest data, for a in depth temporal analysis.
 
 ## Data Overview
 ### Input Data
@@ -26,7 +26,11 @@ Location: data/analysis_data/aggregated/final_aggregated_data.parquet.
 ```
 NTLGDPCorr/
 ├── data/
-│   ├── raw_data/                # Raw input data (not pushed)
+│   ├── raw_data/
+│       ├── tiffiles/            # Year-wise processed data (not pushed)
+│       ├── shapefile/           # contains shapefile used to find the location of country
+│       ├── extracted/           # contains the data extracted from tif files
+│       ├── worldbankdata/       # data on indicators
 │   ├── analysis_data/
 │       ├── yearwise/            # Year-wise processed data (not pushed)
 │       ├── aggregated/          # Final aggregated data (only this is pushed)
