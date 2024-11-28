@@ -43,8 +43,8 @@ import numpy as np
 from shapely.geometry import Point
 
 # Define file paths
-file_path = "raw_data/NTLData/Harmonized_DN_NTL_2019_simVIIRS.tif"  # GeoTIFF file path
-shapefile_path = "raw_data/World_Countries_Shapefile"  # Shapefile path
+file_path = "raw_data/tiffiles/Harmonized_DN_NTL_2019_simVIIRS.tif"  # GeoTIFF file path
+shapefile_path = "raw_data/shapefile"  # Shapefile path
 
 # Load the shapefile
 shapefile = gpd.read_file(shapefile_path)
@@ -102,7 +102,7 @@ result = gpd.sjoin(geo_df, shapefile, how="left", predicate="intersects")
 result = result[["Latitude", "Longitude", "DN", "COUNTRY"]]
 
 # Save the result to a CSV file
-output_path = "analysis_data/finaldata/1993.csv"  # Output CSV file path
+output_path = "raw_data/extracted/1993.csv"  # Output CSV file path
 result.to_csv(output_path, index=False)
 print(f"Processed data saved to {output_path}.")
 

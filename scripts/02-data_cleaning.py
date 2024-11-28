@@ -38,8 +38,8 @@ import os
 import pandas as pd
 
 # Define input and output directories
-input_dir = "analysis_data/finaldata/"  # Directory with raw annual data files
-output_dir = "analysis_data/cleaned_data/"  # Directory to save cleaned data
+input_dir = "data/01-raw_data/extracted/"  # Directory with raw annual data files
+output_dir = "data/02-analysis_data/yearwise"  # Directory to save cleaned data
 
 # Ensure the output directory exists
 os.makedirs(output_dir, exist_ok=True)
@@ -66,3 +66,28 @@ for file_name in file_list:
     output_file_path = os.path.join(output_dir, f"{year}_cleaned.csv")
     grouped_df.to_csv(output_file_path, index=False)
     print(f"Saved cleaned data for {year} to: {output_file_path}")
+
+# Cleaning Worldbank Data 
+# Please adjust this following code for each files
+
+file_path = 'data/01-raw_data/worldbankdata/GDP.csv'  # Update with your file path
+df = pd.read_csv(file_path)
+
+# Melt the DataFrame to make it long
+df_long = pd.melt(
+    df,
+    id_vars=["Country", "Country_Code"],  # Columns to keep
+    var_name="Year",                     # Name of the new 'Year' column
+    value_name="GDP_PPP"                 # Name of the values column
+)
+
+# Ensure 'Year' is an integer (if applicable)
+df_long["Year"] = df_long["Year"].astype(int)
+
+# Display the transformed DataFrame
+print(df_long.head())
+
+# Save the long-format data to a new CSV
+output_file = 'gdplong.csv'
+df_long.to_csv(output_file, index=False)
+print(f"Long format data saved to {output_file}")
