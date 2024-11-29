@@ -3,4 +3,4 @@
 .RData
 .Ruserdata
 *.tif
-*.csv
+/data/01-raw_data/03-extracted/*.csv
