@@ -10,28 +10,492 @@ abstract: "This study investigates the relationship between the growth of night-
 format: pdf
 number-sections: true
 bibliography: references.bib
+execute:
+  echo: false
+  warning: false
+  message: false
+header-includes:
+  - \usepackage[margin=0.8in]{geometry}
 ---
 
 # Introduction
 
-# Data 
+# Data
 
-This study uses a harmonized global night-time light (NTL) dataset spanning from 1992 to 2018, developed by Li et al. This dataset integrates observations from two major satellite systems: the Defense Meteorological Satellite Program (DMSP)/Operational Linescan System (OLS) and the Visible Infrared Imaging Radiometer Suite (VIIRS) onboard the Suomi National Polar-orbiting Partnership satellite. Night-time light data provide a unique proxy for human activity, offering insights into economic development, infrastructure expansion, and population dynamics across regional and global scales.
+We collected data from multiple sources to analyze the relationship between night-time light intensity and GDP growth. The primary dataset is a harmonized global night-time light (NTL) dataset spanning from 1992 to 2018, developed by Li et al. [@Li2020] The dataset combines observations from two satellite systems: DMSP/OLS (1992–2013) and VIIRS (2012–2018). To ensure consistency across years, we addressed differences in spatial resolution and saturation between the two systems by inter-calibrating DMSP data and simulating DMSP-like VIIRS observations. The resulting dataset provides annual Digital Number (DN) values, representing night-time illumination intensity, as GeoTIFF files.
 
-The DMSP dataset, available from 1992 to 2013, captures night-time illumination but suffers from limitations such as coarser spatial resolution and saturation in brightly lit areas. The more recent VIIRS data, available from 2012 to 2018, addresses these issues with improved spatial resolution and sensitivity. However, the transition between DMSP and VIIRS introduces inconsistencies, making direct comparison across years challenging. To address this, the authors harmonized the datasets by inter-calibrating DMSP observations and simulating DMSP-like VIIRS observations, creating a globally consistent record of NTL intensity over time.
-
-The harmonized dataset is distributed as a collection of GeoTIFF files, with each file representing annual NTL data for a given year. These files provide Digital Number (DN) values for each pixel, corresponding to the intensity of night-time illumination. For this study, we used the harmonized GeoTIFF files as the foundational data source, enabling robust analysis of the relationship between changes in NTL intensity and GDP growth across countries and years
+We also sourced GDP, manufacturing share of GDP, and population data from the World Bank’s World Development Indicators (WDI) [@WorldBankWDI],measuring GDP in purchasing power parity (PPP) for comparability across countries. Additionally, we incorporated the Statistical Performance Indicator (SPI), which evaluates national statistical systems across five pillars: data use, data services, data products, data sources, and data infrastructure. [@WorldBankSPI]
 
 ## Measurement
 
-Nocturnal lighting, primarily from artificial sources like residential and industrial areas, serves as a key indicator of human activity. Night-time light (NTL) data, captured by the Defense Meteorological Satellite Program’s Operational Linescan System (DMSP/OLS) and the Visible Infrared Imaging Radiometer Suite (VIIRS), provides a spatially explicit proxy for human presence. DMSP/OLS, operational since the 1970s, used low-light imaging to detect artificial lights but faced challenges like coarse resolution and sensor saturation [@elvidge1997]. VIIRS, introduced in 2012, improved spatial resolution and dynamic range, using advanced algorithms to remove noise and non-anthropogenic light sources, resulting in high-quality radiance-calibrated maps [@elvidge2017]. Both systems process raw radiance data into georeferenced Digital Number (DN) values, composited over time to ensure consistency and reduce noise. These datasets enable global-scale studies of socio-economic phenomena, such as population density, energy consumption, and economic activity, through the lens of artificial light intensity.
+The DN (Digital Number) values in the dataset are derived from satellite imagery that captures night-time light emissions. These emissions result from real-world activities such as streetlights, industrial complexes, and residential areas. The satellite sensors detect these light intensities, which are then processed, calibrated, and harmonized to produce standardized measurements. These measurements are ultimately converted into numerical entries representing the brightness of light observed in specific geographical locations, enabling researchers to analyze economic and social activity at various scales. The data set for our analysis includes NTL captured by the Defense Meteorological Satellite Program’s Operational Linescan System (DMSP/OLS) and the Visible Infrared Imaging Radiometer Suite (VIIRS), provides a spatially explicit proxy for human presence. DMSP/OLS, operational since the 1970s, used low-light imaging to detect artificial lights but faced challenges like coarse resolution and sensor saturation [@elvidge1997]. VIIRS, introduced in 2012, improved spatial resolution and dynamic range, using advanced algorithms to remove noise and non-anthropogenic light sources, resulting in high-quality radiance-calibrated maps [@elvidge2017].
 
-## Data Extraction and Cleaning 
+The World Bank datasets, such as GDP, population, and manufacturing share of GDP, are sourced from national statistical agencies and harmonized using internationally accepted methodologies like the System of National Accounts (SNA). GDP is measured through national accounts using production, income, and expenditure approaches, relying on administrative records, business surveys, and sectoral data. Population data originate from national censuses and are updated between censuses using demographic surveys, vital registration systems, and migration records. Data on the manufacturing share of GDP are collected through industrial surveys and administrative records, capturing outputs from manufacturing activities.
 
-The main task in preparing the dataset was the extraction of night-time light (NTL) intensity values from the GeoTIFF files. Using the 'Rasterio' package [@raster] in Python, we processed annual TIFF files to extract Digital Number (DN) values, which represent the intensity of light, along with their corresponding latitude and longitude coordinates. This provided a spatial dataset that detailed the distribution of NTL intensity globally for each year.
+## Data Extraction and Cleaning
 
-To associate each observation with a specific country, the extracted data were merged with a global shapefile of country boundaries using spatial join techniques. Each latitude-longitude pair was assigned to the country in which it was located. Observations without an assigned country, primarily from international waters, were removed since they could not be attributed to a specific region and often represented ambiguous sources, such as ships or vessels.
+The data preparation began with extracting night-time light (NTL) intensity values from GeoTIFF files using Python's 'Rasterio' [@raster] package. This process involved reading annual TIFF files to obtain Digital Number (DN) values, representing light intensity, along with their corresponding latitude and longitude coordinates. This resulted in a spatial dataset detailing global NTL distribution for each year.
 
-The dataset had only four columns—latitude, longitude, DN, and country—so minimal cleaning was required. The primary cleaning step was to remove observations with missing country values. Finally, to create an aggregate annual measure of NTL intensity for each country, all observations within a country were summed to calculate the total light emitted annually. This resulted in a dataset where each row represented a country, and the sum of NTL intensity served as our primary independent variable. Each year's dataset thus provides a single measure of total NTL emitted by a country for that year, facilitating longitudinal analysis.
+To associate each observation with a specific country, the extracted data were merged with a global shapefile of country boundaries through spatial join techniques. Each latitude-longitude pair was assigned to the country in which it was located, and observations without an assigned country—primarily from international waters—were removed. Subsequently, to create an aggregate annual measure of NTL intensity for each country, all observations within a country were summed to calculate the total light emitted annually.
+
+The World Bank data, including GDP, manufacturing share of GDP, and population, were processed by standardizing country names to ensure consistency across datasets. For instance, discrepancies like 'Yemen' versus 'Yemen, Rep.' were resolved. The data were then transformed from a wide to a long format using pandas' 'melt' function, facilitating easier merging with the NTL data.
+
+To assess how the correlation between night-time light (NTL) intensity and GDP varies among countries with differing levels of statistical capacity, we first to group countries together based on a measure of each country's statistical capacity.We used the World Bank's Statistical Performance Indicators (SPI). We calculated the average SPI score for each country across all the years SPI was available for and assigned grades based on these averages: scores of 80 and above received an 'A', scores between 60 and 79 a 'B', scores between 40 and 59 a 'C', scores between 20 and 39 a 'D', and scores below 20 an 'F'.A glimpse of the dataset is presented in [@tbl-glimpse].
+
+```{r}
+
+#| echo: false
+#| warning: false
+#| message: false
+
+library(arrow)        
+library(tidyverse)         
+library(modelsummary)
+library(here)
+library(kableExtra)
+library(tinytable)
+library(sf)
+library(scales)
+library(ggridges)
+library(gridExtra)
+library(gridExtra)
+library(grid)
+library(png)
+
+
+
+# Load the Parquet file
+analysis_data <- read_parquet(here("data/02-analysis_data/04-analysis/analysis.parquet"))
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-glimpse
+#| tbl-cap: "Sample of the dataset showing key variables used in the analysis"
+
+# Filter rows without missing values, pick the first occurrence of 10 unique countries
+clean_data <- analysis_data[complete.cases(analysis_data), ] |>  # Remove rows with missing values
+  group_by(country) |>  # Group by country
+  slice_head(n = 1) |>  # Select the first row for each country
+  ungroup() |>  # Remove grouping
+  slice_head(n = 7)  # Limit to 10 unique countries
+
+# Rename columns using base R
+colnames(clean_data) <- c(
+  "Country", 
+  "Year", 
+  "Night Lights (DN)", 
+  "GDP (PPP)", 
+  "Manufacturing Share", 
+  "Country Code", 
+  "Population", 
+  "SPI Score", 
+  "Grade"
+)
+
+# Drop the "SPI Score" and "Country Code" columns
+clean_data <- clean_data[, !colnames(clean_data) %in% c("SPI Score", "Country Code")]
+
+# Display the cleaned data as a tidy table
+clean_data |> tt()
+
+```
+
+## Summary Statistics
+
+It is more meaningful to examine the summary statistics year-wise to capture temporal variations in the data, as the variance across all years is substantial. [@tbl-sumstat] displays the summary statistics for selected years, showing significant growth in average night-time light intensity (DN), GDP (measured in PPP), and population from 1995 to 2020. An especially intriguing observation is that both night-time light intensity and GDP grew by almost exactly the same proportion—2.1 times—between 1995 and 2020 (DN increased by 2.102 times and GDP by 2.101 times).The summary statistics of the rest of the years are given in appendix.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-sumstat
+#| tbl-cap: "Summary Statistics of Data from year 1995 and 2020"
+
+# Filter the dataset for selected years and select relevant columns
+filtered_data <- analysis_data %>%
+  filter(year %in% c(1995,2020)) %>%  # Filter for specific years
+  select(
+    "Year" = year,
+    "DN" = dn,
+    "GDP" = gdp,
+    "Manufacturing" = manufacturingsharegdp,
+    "Population" = population
+  )
+
+# Generate descriptive statistics by year
+datasummary_balance(
+  formula = ~Year,  # Group by 'Year'
+  data = filtered_data,
+  dinm = FALSE,  # Prevent dynamic naming
+  notes = "DN refers to total average night-time light intensity emitted by a country in a year, GDP is measured in PPP, and Manufacturing refers to the manufacturing share of GDP."
+)
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+# Load the shapefile and suppress messages
+shapefile_path <- "/Users/shamayladurrin/Desktop/STA304/NTLGDPCorr/data/01-raw_data/02-shapefile"
+sink("/dev/null")  # Redirect console output to null
+world_shapefile <- st_read(shapefile_path)
+sink()# Load the Parquet file
+metrics <- read_parquet(here("data/03-plotting_data/plotting.parquet"))
+```
+
+## Data Description 
+
+### Night Time Lights Data
+
+Nighttime light (NTL) distribution and intensity often vary significantly by population density, GDP, and levels of urbanization. When comparing countries with similar population sizes and land areas, the disparity in NTL intensity vividly reflects income inequality. A striking example is the contrast between North and South Korea, where South Korea's GDP per capita is over 50 times greater than that of North Korea, manifesting in the stark difference in nighttime illumination. In [@fig-ntl], using NASA's Worldview NTL imagery, this difference of GDP is clearly visible, with South Korea brightly lit compared to its nearly dark northern neighbor. Similarly, Myanmar and Thailand, with comparable populations and land area, show a distinct NTL difference; Thailand's higher GDP and urbanization are evident in its dense and widespread lighting compared to Myanmar's relatively sparse illumination.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-ntl
+#| fig-cap: "Night-time light intensity highlights stark contrasts in economic development: the profound disparity between North and South Korea, and the significant difference between Myanmar and Thailand.*(Source: NASA Worldview)*"
+
+knitr::include_graphics("/Users/shamayladurrin/Desktop/STA304/NTLGDPCorr/others/plots/test.png")
+
+```
+
+Total night-time light (NTL) values for countries exhibit a highly skewed distribution due to the presence of a few highly luminous regions. In [@fig-dn], we observe that after applying a log transformation, this distribution becomes relatively normal, making it more suitable for comparative and statistical analysis
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-dn
+#| fig-cap: "Distribution of log-transformed average nighttime luminosity (DN) by country over the past 30 years, showing variations in average brightness levels across nations."
+
+# Group by country and calculate the average DN for each country
+avg_dn_by_country <- analysis_data %>%
+  group_by(country) %>%
+  summarise(avg_dn = mean(dn, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(avg_dn_by_country, aes(x = avg_dn)) +
+  geom_histogram(fill = "steelblue", color = "white", alpha = 0.7, bins = 30) +
+  scale_x_continuous(trans = "log10", labels = scales::comma_format()) +
+  labs(
+    x = "Average DN (Log Scale)",
+    y = "Frequency"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+
+```
+
+### GDP 
+
+To visualise GDP distribution across numerous countries, we categorized them into UN-defined SDG regions and examined the GDP distribution for 2012-2020. The [@fig-gdp] shows that Europe and Northern America have the highest GDP levels, followed by Eastern and South-Eastern Asia and Latin America and the Caribbean, while Sub-Saharan Africa, Oceania, and Central and Southern Asia show significantly lower GDP levels. We would expect similar variations in night-time light intensity, with regions of higher GDP likely exhibiting brighter and more widespread night-time illumination. This connection underscores how night-time light can serve as a proxy for economic activity and development, reflecting the stark differences across regions.
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-gdp
+#| fig-cap: "Density plot of average GDP (2012-2020) by region, illustrating Europe and Northern America with the highest GDP, followed by Eastern and South-Eastern Asia and Latin America and the Caribbean, while Sub-Saharan Africa, Oceania, and Central and Southern Asia exhibit significantly lower GDP levels."
+
+# Filter data for the speicific interval of years 
+filtered_data_first_interval <- metrics %>%
+  filter(interval == "2012-2020", !is.na(avg_gdp), !is.na(region))
+
+# Create a density plot for the first interval
+ggplot(filtered_data_first_interval, aes(x = avg_gdp, fill = region)) +
+  geom_density(alpha = 0.6) +
+  scale_x_continuous(trans = "log10", 
+                     labels = scales::comma_format()) +  # Log scale for better visualization
+  labs(
+    x = "Average GDP (log scale)",
+    y = "Density",
+    fill = "Region"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14)
+  )
+
+```
+
+### Manufacturing Share of GDP of Country 
+
+Night-time light intensity is expected to vary with the share of manufacturing in a country's GDP, as higher manufacturing activity typically involves more factories, industrial areas, and infrastructure requiring artificial lighting. [@fig-man] in appendix illustrates the manufacturing share of GDP for countries in 2020. Most countries have a manufacturing share below 20%, with a few exceptions such as Puerto Rico, Liechtenstein, and Ireland, which have some of the highest manufacturing contributions. [@fig-man2] in the appendix presents the manufacturing share of GDP at the beginning of our dataset's time frame in 1992, highlighting how many countries have gradually shifted towards a higher reliance on manufacturing over the years. 
+
+
+### Population
+
+Population trends provide essential context for understanding economic activity and night-time light (NTL) intensity patterns. In [@fig-pop], the total world population is shown to have grown steadily from approximately 4 billion in 1992 to over 7.5 billion by 2020. [@fig-pop2] provides a regional breakdown of average population across intervals, categorized by UN-defined SDG regions. It reveals that regions like Central and Southern Asia and Eastern and South-Eastern Asia consistently have the highest average populations, while regions like Oceania and Sub-Saharan Africa have significantly lower averages. This demographic variation is critical for analyzing NTL because densely populated regions are likely to exhibit higher light intensity due to concentrated urbanization and industrial activity. Conversely, less populated or sparsely developed regions are expected to have lower NTL levels.
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-pop
+#| fig-cap: "Steady growth of the global population from 1992 to 2020"
+
+# Summarize population by year
+total_population_by_year <- analysis_data %>%
+  group_by(year) %>%
+  summarise(total_population = sum(population, na.rm = TRUE))
+
+# Create a bar chart
+ggplot(total_population_by_year, aes(x = year, y = total_population)) +
+  geom_bar(stat = "identity", fill = "blue", alpha = 0.7) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    x = "Year",
+    y = "Total World Population"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-pop2
+#| fig-cap: "Average population (log scale) across regions for different time intervals (1991–1997, 1998–2004, 2005–2011, and 2012–2020) showing significant population growth in regions such as Central and Southern Asia, Eastern and South-Eastern Asia, and Sub-Saharan Africa over time, with variations across other regions"
+
+region_population <- metrics %>%
+  filter(!is.na(region) & !is.na(avg_population)) %>%  # Remove rows with NA values in region or avg_population
+  group_by(region, interval) %>%
+  summarize(avg_population = mean(avg_population, na.rm = TRUE))
+
+# Create a grouped bar plot
+ggplot(region_population, aes(x = region, y = avg_population, fill = interval)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    x = "Region",
+    y = "Average Population",
+    fill = "Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+
+
+```
+# Night lights and GDP
+
+[@fig-log-dn-vs-log-gdp] plots the log of DN values against the log of GDP for all countries across 30 years, capturing the relationship between night-time light intensity and economic activity. The scatterplot shows a clear positive correlation, indicating that higher GDP values are generally associated with higher DN values.
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-log-dn-vs-log-gdp
+#| fig-cap: "Strong positive correlation between night-time light intensity (Log DN) and GDP (Log GDP), indicating regions with higher GDP levels tend to emit more night-time light"
+
+# Ensure data is cleaned (remove NA values for dn and gdp)
+analysis_cleaned <- analysis_data %>%
+  filter(!is.na(dn) & !is.na(gdp))
+
+# Create the scatterplot
+ggplot(analysis_cleaned, aes(x = log(gdp), y = log(dn))) +
+   geom_point(alpha = 0.7, color = "gold4", size = 1) +
+  labs(
+    x = "Log of GDP",
+    y = "Log of DN"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+```
+In [@fig-dn-gdp-grade], we observe how this relationship between DN and GDP varies across countries with different statistical capacities. A list of countries categorized by their statistical capacity grades is given in [@tab-grades-countries-latex] of the appendix. Countries with higher statistical capacity (graded A and B) exhibit a more tightly clustered and linear relationship, indicating consistent and robust data collection processes. Conversely, countries with lower statistical capacity (graded D and F) show more scatter and variability, suggesting potential discrepancies or weaker data reliability in their national accounts. This shows the intuitive idea that the strength of the DN-GDP relationship can serve as an indicator of the reliability of a country's national statistical systems.
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-dn-gdp-grade
+#| fig-cap: "Strength of the correlation between Log DN and Log GDP varies with statistical capacity grades; countries with higher grades (A, B, C) exhibit stronger and more consistent relationships, while lower grades (D, F) show weaker and more dispersed patterns, suggesting the quality of national accounts impacts the NTL-GDP relationship."
+
+# Ensure data is cleaned (remove NA values for dn, gdp, and grade)
+analysis_cleaned <- analysis_data %>%
+  filter(!is.na(dn) & !is.na(gdp) & !is.na(grade))
+
+# Create the scatterplot faceted by grade
+ggplot(analysis_cleaned, aes(x = log(gdp), y = log(dn))) +
+  geom_point(alpha = 0.7, color = "gold4", size = 0.5) +
+  labs(
+    x = "Log of GDP",
+    y = "Log of DN"
+  ) +
+  facet_wrap(~grade) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    strip.text = element_text(face = "bold")
+  )
+
+```
+# Night lights and Population
+
+Larger populations naturally result in higher night-time light emissions due to increased urbanization and economic activity. Figure 1 confirms this with a clear positive relationship between population (log-transformed) and night-time light intensity (Log DN), highlighting how population size contributes to observable brightness from space.
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-population-vs-dn
+#| fig-cap: "Scatterplot of Population versus DN."
+
+# Ensure data is cleaned (remove NA values for population and dn)
+analysis_cleaned <- analysis_data %>%
+  filter(!is.na(population) & !is.na(dn))
+
+# Create the scatterplot
+ggplot(analysis_cleaned, aes(x = log(population), y = log(dn))) +
+  geom_point(alpha = 0.7, color = "darkcyan", size = 0.5) +
+  labs(
+    x = "Log of Population",
+    y = "Log of DN"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+
+```
+
+# NTL and ith Manufacturing Share of GDP 
+
+[@fig-manufacturing-share-vs-dn] shows the relationship between the manufacturing share of GDP and night-time light intensity (Log DN). The plot shows a weak positive trend for countries with moderate manufacturing shares (up to 20%), where higher manufacturing activity corresponds to slightly higher DN values. However, the relationship becomes less defined for countries with very high or very low manufacturing shares, suggesting that other economic activities or structural factors might influence night-time light emissions. This indicates that while manufacturing contributes to night-time light, it is not the sole determinant, and its impact may vary across different contexts.
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-manufacturing-share-vs-dn
+#| fig-cap: "Scatterplot of Manufacturing Share of GDP versus DN."
+
+# Ensure data is cleaned (remove NA values for manufacturingsharegdp and dn)
+analysis_cleaned <- analysis_data %>%
+  filter(!is.na(manufacturingsharegdp) & !is.na(dn))
+
+# Create the scatterplot
+ggplot(analysis_cleaned, aes(x = manufacturingsharegdp, y = log(dn))) +
+  geom_point(alpha = 0.7, color = "steelblue", size = 0.5) +
+  labs(
+    x = "Manufacturing Share of GDP (%)",
+    y = "Log of DN"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+
+```
+
+
+
+
+
+
+
+
+
+# Appendix
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tab-grades-countries-latex
+#| tbl-cap: "List of Countries Grouped by Grade."
+
+# Group countries by grade and collapse into a single string
+grades_latex_table <- analysis_data %>%
+  select(country, grade) %>%
+  distinct() %>%
+  group_by(grade) %>%
+  summarize(countries = paste(country, collapse = ", ")) %>%
+  arrange(grade)
+
+# Generate LaTeX code for the table
+grades_latex_table %>%
+  knitr::kable(
+    format = "latex",
+    align = c("l", "p{10cm}"), # Use a wide column for the country list
+    col.names = c("Grade", "Countries"),
+    escape = FALSE             # Avoid escaping LaTeX special characters
+  ) %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    position = "center",
+    latex_options = c("striped", "hold_position")
+  )
+
+```
+
+```{r fig.width=12, fig.height=9}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-man
+#| fig-cap: "Manufacturing share of GDP for countries in 2020, showing significant variation across nations, with the highest shares observed in Puerto Rico, Liechtenstein, and Ireland. Countries with higher manufacturing shares are expected to exhibit brighter night-time light intensity due to industrial activity."
+
+# Filter data for the year 2020 with manufacturing share of GDP >= 10%
+filtered_data_2020_high_manufacturing <- analysis_data %>%
+  filter(year == 2020, manufacturingsharegdp >= 10)
+
+# Create a bar plot for countries with manufacturing share >= 10%
+ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufacturingsharegdp), y = manufacturingsharegdp)) +
+  geom_bar(stat = "identity", fill = "steelblue", alpha = 0.8) +
+  labs(
+    x = "Country",
+    y = "Manufacturing Share of GDP (%)"
+  ) +
+  coord_flip() +  # Flip coordinates for better readability
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.y = element_text(size = 8)
+  )
+
+```
+
+
+```{r fig.width=12, fig.height=9}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-man2
+#| fig-cap: "Manufacturing share of GDP for countries in 1992, showing significant variation across nations, with the highest shares observed in Puerto Rico, Ukrain, and Belarus."
+# Filter data for the year 2020 with manufacturing share of GDP >= 10%
+filtered_data_2020_high_manufacturing <- analysis_data %>%
+  filter(year == 1992, manufacturingsharegdp >= 10)
+
+# Create a bar plot for countries with manufacturing share >= 10%
+ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufacturingsharegdp), y = manufacturingsharegdp)) +
+  geom_bar(stat = "identity", fill = "steelblue", alpha = 0.8) +
+  labs(
+    x = "Country",
+    y = "Manufacturing Share of GDP (%)"
+  ) +
+  coord_flip() +  # Flip coordinates for better readability
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text.y = element_text(size = 8)
+  )
+```
 
 # Reference
