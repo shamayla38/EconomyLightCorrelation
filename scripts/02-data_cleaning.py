@@ -20,6 +20,8 @@ Date:
 Dependencies:
     - Python 3.8 or higher
     - pandas >= 1.3
+    - rasterio 
+    - os
 
 Inputs:
     - Extracted NTL datasets (CSV format)
@@ -40,6 +42,11 @@ Usage:
 # First we simply take each extracted file that contains the DN values, Country and Year and we will remove all the observations that do not have a valid country identified.
 # Then we will sum all the DN values for each country as we will be needing the aggregate luminosity.  
 # Define input and output directories
+
+import rasterio
+import pandas
+import os
+
 
 input_dir = "data/01-raw_data/extracted"  # Directory with raw annual data files
 output_dir = "data/02-analysis_data/01-aggregatedbycountry"  # Directory to save cleaned data
