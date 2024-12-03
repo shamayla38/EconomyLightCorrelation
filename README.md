@@ -1,7 +1,7 @@
 # Night-Time Light and Economic Growth Correlation
 ## Overview
 
-This project explores the relationship between Night-Time Light (NTL) intensity, captured via satellite imagery, and economic indicators such as GDP. It incorporates the most recent and comprehensive data available to conduct a temporal analysis spanning multiple decades. The study emphasizes the role of NTL as a robust proxy for economic activity, particularly in regions with unreliable or unavailable conventional economic data. Both R and Python were used in this analysis.
+This project explores the relationship between Night-Time Light (NTL) intensity, captured via satellite imagery, and economic indicators such as GDP. It incorporates the most recent and comprehensive data available to conduct a temporal analysis spanning multiple decades. The study emphasizes the role of NTL as a robust proxy for economic activity, particularly in regions with unreliable or unavailable conventional economic data. Both R and Python were used in this analysis. 
 
 ## Data Overview
 ### Input Data
@@ -36,6 +36,7 @@ NTLGDPCorr/
 │   ├── plots/
 │   ├── sketches/
 │   ├── LLLM_documentation/
+│   ├── datasheet/ # containes detailed information about the data
 ├── paper/
 ├── scripts/
 
@@ -100,6 +101,16 @@ Shapefile Source: Global country boundary shapefiles. Link: https://hub.arcgis.c
 ## LLM Usage
 
 LLM was used for finding code syntax, fixing code for plotting. 
+
+## Concluding Note 
+To fully understand the workflow, dataset, and methodology of this project, it is essential to review the  README.md, DATA_DESCRIPTION.txt and Scripts.  Each script in the scripts/ directory is documented and corresponds to a specific step in the workflow, from data extraction to modeling. Refer to the comments in the scripts for detailed information about their functionality.By carefully reviewing these resources, you will gain a good understanding of how the data was prepared, analyzed, and used to derive the results presented in this study.
+
+
+
+
+
+
+
 
 
 
