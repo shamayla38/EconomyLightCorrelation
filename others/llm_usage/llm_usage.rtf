@@ -1,0 +1,109 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Bold;\f1\froman\fcharset0 Times-Roman;\f2\froman\fcharset0 Times-Italic;
+\f3\fmodern\fcharset0 Courier;\f4\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue0;\red179\green179\blue179;
+}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c0\c0\c0\c84706;\cssrgb\c75294\c75294\c75294;
+}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f0\b\fs36 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 LLM Usage Documentation\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f1\b0\fs24 \cf0 This document outlines how a Language Model (LLM) was utilized during the development of this project. The LLM provided assistance in tasks such as identifying correct code syntax, debugging, and improving plotting visualizations.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f0\b\fs28 \cf0 Example Interactions with the LLM:\
+\pard\pardeftab720\sa319\partightenfactor0
+
+\fs24 \cf0 1. Fixing Code Syntax\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 User Query:
+\f1\b0  
+\f2\i "How do I create a scatterplot in ggplot2 with custom point sizes and colors?"
+\f1\i0 \
+
+\f0\b LLM Response:
+\f1\b0  The LLM provided a detailed response including the correct ggplot2 syntax:\
+\pard\pardeftab720\partightenfactor0
+
+\f3\fs26 \cf0 R\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs22 \cf3 \cb4 \strokec3 Copy code
+\f3\fs26 \cf0 \cb1 \strokec2 \
+ggplot(data, aes(x = variable1, y = variable2, size = variable3, color = variable4)) +\
+  geom_point(alpha = 0.7) +\
+  labs(x = "X-axis Label", y = "Y-axis Label", title = "Scatterplot Title") +\
+  theme_minimal()\
+\pard\pardeftab720\sa319\partightenfactor0
+
+\f0\b\fs24 \cf0 2. Debugging Code for Plotting\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 User Query:
+\f1\b0  
+\f2\i "My code is throwing an error while saving a ggplot plot. How do I fix this?"
+\f1\i0 \
+
+\f0\b LLM Response:
+\f1\b0  The LLM identified the issue and provided corrected syntax for saving the plot:\
+\pard\pardeftab720\partightenfactor0
+
+\f3\fs26 \cf0 R\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs22 \cf3 \cb4 \strokec3 Copy code
+\f3\fs26 \cf0 \cb1 \strokec2 \
+ggsave(filename = "plot.png", plot = last_plot(), width = 10, height = 8, dpi = 300)\
+\pard\pardeftab720\sa319\partightenfactor0
+
+\f0\b\fs24 \cf0 3. Assistance with Complex Plots\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 User Query:
+\f1\b0  
+\f2\i "How do I create a multi-panel plot in R that compares distributions over two time periods?"
+\f1\i0 \
+
+\f0\b LLM Response:
+\f1\b0  The LLM explained the process and provided code using 
+\f3\fs26 facet_wrap
+\f1\fs24 :\
+\pard\pardeftab720\partightenfactor0
+
+\f3\fs26 \cf0 R\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs22 \cf3 \cb4 \strokec3 Copy code
+\f3\fs26 \cf0 \cb1 \strokec2 \
+ggplot(data, aes(x = variable, fill = time_period)) +\
+  geom_histogram(binwidth = 2, position = "dodge") +\
+  facet_wrap(~ time_period, scales = "free") +\
+  labs(x = "Variable", y = "Count", title = "Distribution Comparison") +\
+  theme_minimal()\
+\pard\pardeftab720\sa319\partightenfactor0
+
+\f0\b\fs24 \cf0 4. Code Refinement and Optimization\
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 User Query:
+\f1\b0  
+\f2\i "Can you help me make this scatterplot cleaner and more presentable?"
+\f1\i0 \
+
+\f0\b LLM Response:
+\f1\b0  The LLM optimized the code by adjusting parameters for point size, transparency, and axis formatting:\
+\pard\pardeftab720\partightenfactor0
+
+\f3\fs26 \cf0 R\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs22 \cf3 \cb4 \strokec3 Copy code
+\f3\fs26 \cf0 \cb1 \strokec2 \
+ggplot(data, aes(x = log(variable1), y = log(variable2))) +\
+  geom_point(color = "gold", alpha = 0.5, size = 1.5) +\
+  labs(x = "Log of Variable 1", y = "Log of Variable 2", title = "Clean Scatterplot") +\
+  theme_minimal() +\
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))\
+}
