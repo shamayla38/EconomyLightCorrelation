@@ -19,12 +19,6 @@
 # 
 # Outputs:
 # - A processed dataset saved as a Parquet file: "plotting.parquet".
-# 
-# Author:
-# [Your Name]
-# 
-# Date:
-# [Today's Date]
 
 # Load necessary libraries
 library(dplyr)
@@ -109,3 +103,4 @@ average_metrics <- analysis_data_with_regions %>%
 
 # Step 4: Save the resulting dataset
 write_parquet(average_metrics, "plotting.parquet")
+

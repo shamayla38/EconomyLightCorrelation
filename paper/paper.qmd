@@ -1,12 +1,12 @@
 ---
-title: "From Light to Growth: A Study of Night-Time Light as an Indicator of Economic Development"
-subtitle: "Growth in Night-Time Light Intensity Correlates ___% With GDP Growth"
+title: "From Light to GDP: A Study of Night-Time Light as an Indicator of Economic Development"
+subtitle: "Near One-to-One Relationship Between Night-Time Lights and GDP. Weaker Statistical Systems Show Diminished Correlation"
 author: 
   - Shamayla Durrin
 thanks: "Code and data are available at: [https://github.com/shamayla38/EconomyLightCorrelation](https://github.com/shamayla38/EconomyLightCorrelation)."
 date: today
 date-format: long
-abstract: "This study investigates the relationship between the growth of night-time light (NTL) intensity, as captured by satellite imagery, and GDP growth across countries over a multi-decade period. By analyzing data spanning from 1992 to 2001, we find a strong correlation of [X]% between NTL growth and GDP growth. Importantly, the strength of this correlation varies by the statistical capacity of countries. Countries with high statistical capacity, rated 'A' by the World Bank, exhibit a correlation as high as [X]%, while those with low statistical capacity, rated 'F', show a correlation as low as [Y]%. These findings highlight the potential of NTL data as a complementary tool for economic analysis, particularly in regions where conventional economic metrics are less reliable or unavailable.(Blank spaces will be filled when project is completed)"
+abstract: "We examine the relationship between night-time light (NTL) intensity, captured by satellite imagery, and GDP across countries over decades. Analyzing data from 1992 to 2001, we find a strong, near one-to-one correlation between NTL and GDP, which weakens in countries with lower statistical capacity. Population and manufacturing share of GDP are also correlated with NTL but explain less variation than GDP. Using recent satellite imagery, this study revisits the NTL-GDP relationship over time, reaffirming NTL as a valuable proxy for economic activity in regions with unreliable or unavailable GDP metrics."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -15,12 +15,23 @@ execute:
   warning: false
   message: false
 header-includes:
-  - \usepackage[margin=0.8in]{geometry}
+  - \usepackage[margin=0.85in]{geometry}
 ---
 
 # Introduction
 
-# Data
+Economic growth measurement is central to policymaking, research, and international comparisons. Despite its importance, GDP figures, widely used as a benchmark for economic activity, are often criticized for inaccuracies, particularly in contexts where governance systems are less transparent. In authoritarian regimes, GDP data is vulnerable to manipulation for political ends, while in low-capacity states, weak statistical systems limit the reliability of national accounts. These challenges motivate the search for alternative indicators of economic activity. Night-Time Light (NTL) intensity, derived from satellite imagery, offers a compelling solution. Unlike GDP, NTL data is immune to tampering and provides a direct measure of human and industrial activity. By capturing emissions from streetlights, industrial areas, and residential zones, NTL reflects patterns of development that cannot be easily concealed or fabricated. This robustness, coupled with its availability across all regions, makes NTL an invaluable proxy for economic analysis.
+
+Numerous studies have explored the relationship between NTL and GDP, particularly during the 1990s and early 2000s. These earlier studies primarily relied on the Defense Meteorological Satellite Program (DMSP) dataset, which was not originally designed for research purposes and suffered from technical limitations. More recent advancements, however, have introduced the Visible Infrared Imaging Radiometer Suite (VIIRS) dataset, which offers significantly improved quality, including better spatial resolution, radiometric calibration, and fewer issues with data saturation. With this enhanced dataset, spanning a broader temporal range and covering a larger sample of countries, it is now possible to revisit and expand upon earlier findings. This explore how the correlation between NTL and GDP has evolved, with particular attention to the moderating role of statistical capacity in different countries. Using fixed effects models, we aim to study the strength of the NTL-GDP correlation and assess its variation across countries grouped by statistical capacity.
+
+We began by attempting to control for key variables such as population and the manufacturing share of GDP to refine our estimates of the NTL-GDP relationship. However, given the high multicollinearity between GDP, population, and manufacturing share, it was not feasible to include all these variables in the same model. Instead, we opted for separate regressions to isolate their unique relationships with NTL. Our results show a strong overall correlation between NTL and GDP, with coefficients consistently positive across models and R-squared values exceeding 0.90 in most cases.In addition to GDP, both population and manufacturing share of GDP were significantly correlated with NTL. While the relationship was not as strong as that observed with GDP, the models incorporating these variables explained a substantial proportion of the variation in NTL, with over 90% of the variation in light intensity accounted for in most cases. 
+
+To study the variation in the NTL-GDP relationship by statistical capacity, we employed a dual approach. First, we introduced interaction terms between GDP and statistical capacity grades to capture heterogeneity within a single framework. Second, we ran subset regressions for countries grouped by statistical capacity grade, allowing us to analyze dynamics specific to each group. Our findings reveal that while the interaction model provides a unified overview, the subset regressions better capture the unique challenges faced by countries with weaker statistical systems. In particular, countries with lower statistical capacity exhibit greater variability in residuals and weaker correlations between NTL and GDP, underscoring the need for tailored analyses in these contexts. 
+
+The structure of the paper is as follows. Section @sec-data outlines the data sources, the methods used to process and clean raster data from TIFF files, and the integration with World Bank data, along with a summary of the dataset. Section @sec-vari examines the distribution of key variables. Section @sec-rel visualizes and discusses the relationships between night-time light (NTL) and the variables of interest. Section @sec-model presents the different models used in the analysis, while Section @sec-results summarizes and interprets the model results. @sec-vari discusses the implciations of the findings and provides a broader discussion on uses and challenges of NTL. Finally, Section @sec-app includes supplementary figures and tables, such as the correlation matrix, model diagnostics, and an extended discussion on the measurement of night-time light.
+
+
+# Data {#sec-data}
 
 We collected data from multiple sources to analyze the relationship between night-time light intensity and GDP growth. The primary dataset is a harmonized global night-time light (NTL) dataset spanning from 1992 to 2018, developed by Li et al. [@Li2020] The dataset combines observations from two satellite systems: DMSP/OLS (1992–2013) and VIIRS (2012–2018). To ensure consistency across years, they addressed differences in spatial resolution and saturation between the two systems by inter-calibrating DMSP data and simulating DMSP-like VIIRS observations. The resulting dataset provides annual Digital Number (DN) values, representing night-time illumination intensity, as GeoTIFF files.
 
@@ -61,6 +72,8 @@ library(grid)
 library(png)
 library(modelsummary)
 library(broom)
+library(GGally)
+library(patchwork)
 
 
 # Load the Parquet file
@@ -102,10 +115,9 @@ clean_data <- clean_data[, !colnames(clean_data) %in% c("SPI Score", "Country Co
 clean_data |> tt()
 
 ```
+\vspace{2cm}
+## Summary Statistics {#sec-sum}
 
-## Summary Statistics
-
-It is more meaningful to examine the summary statistics year-wise to capture temporal variations in the data, as the variance across all years is substantial. [@tbl-sumstat] displays the summary statistics for selected years, showing significant growth in average night-time light intensity (DN), GDP (measured in PPP), and population from 1995 to 2020. An especially intriguing observation is that both night-time light intensity and GDP grew by almost exactly the same proportion—2.1 times—between 1995 and 2020 (DN increased by 2.102 times and GDP by 2.101 times).The summary statistics of the rest of the years are given in appendix.
 
 ```{r}
 #| echo: false
@@ -134,6 +146,9 @@ datasummary_balance(
 )
 
 ```
+It is more meaningful to examine the summary statistics year-wise to capture temporal variations in the data, as the variance across all years is substantial. [@tbl-sumstat] displays the summary statistics for selected years, showing significant growth in average night-time light intensity (DN), GDP (measured in PPP), and population from 1995 to 2020. An especially intriguing observation is that both night-time light intensity and GDP grew by almost exactly the same proportion—2.1 times—between 1995 and 2020 (DN increased by 2.102 times and GDP by 2.101 times).The summary statistics of the rest of the years are given in appendix.
+
+
 
 ```{r}
 #| echo: false
@@ -147,9 +162,9 @@ sink()# Load the Parquet file
 metrics <- read_parquet(here("data/03-plotting_data/plotting.parquet"))
 ```
 
-## Data Description 
+# Variable Description {#sec-vari}
 
-### Night Time Lights Data
+## Night Time Lights Data
 
 Nighttime light (NTL) distribution and intensity often vary significantly by population density, GDP, and levels of urbanization. When comparing countries with similar population sizes and land areas, the disparity in NTL intensity vividly reflects income inequality. A striking example is the contrast between North and South Korea, where South Korea's GDP per capita is over 50 times greater than that of North Korea, manifesting in the stark difference in nighttime illumination. In [@fig-ntl], using NASA's Worldview NTL imagery, this difference of GDP is clearly visible, with South Korea brightly lit compared to its nearly dark northern neighbor. Similarly, Myanmar and Thailand, with comparable populations and land area, show a distinct NTL difference; Thailand's higher GDP and urbanization are evident in its dense and widespread lighting compared to Myanmar's relatively sparse illumination.
 
@@ -160,7 +175,7 @@ Nighttime light (NTL) distribution and intensity often vary significantly by pop
 #| label: fig-ntl
 #| fig-cap: "Night-time light intensity highlights stark contrasts in economic development: the profound disparity between North and South Korea, and the significant difference between Myanmar and Thailand.*(Source: NASA Worldview)*"
 
-knitr::include_graphics(here("others/plots/ntl.png"))
+knitr::include_graphics(here("others/plots/figuresandresults/ntl.png"))
 
 ```
 
@@ -172,7 +187,6 @@ Total night-time light (NTL) values for countries exhibit a highly skewed distri
 #| message: false
 #| label: fig-dn
 #| fig-cap: "Distribution of log-transformed average nighttime luminosity (DN) by country over the past 30 years, showing variations in average brightness levels across nations."
-
 # Group by country and calculate the average DN for each country
 avg_dn_by_country <- analysis_data %>%
   group_by(country) %>%
@@ -192,10 +206,12 @@ ggplot(avg_dn_by_country, aes(x = avg_dn)) +
   )
 
 ```
-
-### GDP 
+\newpage
+## GDP 
 
 To visualise GDP distribution across numerous countries, we categorized them into UN-defined SDG regions and examined the GDP distribution for 2012-2020. The [@fig-gdp] shows that Europe and Northern America have the highest GDP levels, followed by Eastern and South-Eastern Asia and Latin America and the Caribbean, while Sub-Saharan Africa, Oceania, and Central and Southern Asia show significantly lower GDP levels. We would expect similar variations in night-time light intensity, with regions of higher GDP likely exhibiting brighter and more widespread night-time illumination. This connection underscores how night-time light can serve as a proxy for economic activity and development, reflecting the stark differences across regions.
+
+\vspace{1cm}
 
 ```{r fig.width=12, fig.height=5}
 #| echo: false
@@ -225,13 +241,63 @@ ggplot(filtered_data_first_interval, aes(x = avg_gdp, fill = region)) +
   )
 
 ```
+\vspace{1cm}
 
-### Manufacturing Share of GDP of Country 
+## Manufacturing Share of GDP of Country 
 
-Night-time light intensity is expected to vary with the share of manufacturing in a country's GDP, as higher manufacturing activity typically involves more factories, industrial areas, and infrastructure requiring artificial lighting. [@fig-man] in appendix illustrates the manufacturing share of GDP for countries in 2020. Most countries have a manufacturing share below 20%, with a few exceptions such as Puerto Rico, Liechtenstein, and Ireland, which have some of the highest manufacturing contributions. [@fig-man2] in the appendix presents the manufacturing share of GDP at the beginning of our dataset's time frame in 1992, highlighting how many countries have gradually shifted towards a higher reliance on manufacturing over the years. 
+Night-time light intensity is expected to vary with the share of manufacturing in a country's GDP, as higher manufacturing activity typically involves more factories, industrial areas, and infrastructure requiring artificial lighting. @fig-manudist compare the distribution of manufacturing's share of GDP for 1993 and 2020, highlighting notable differences over time. In 1993, the distribution of manufacturing's share of GDP appears broader, with more countries exhibiting higher manufacturing shares. By 2020, the distribution has shifted, with a majority of countries clustered around a lower manufacturing share, though a few outliers still exhibit significantly high values. 
+
+```{r fig.width=12, fig.height=5}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-manudist
+#| fig-cap: "Comparison of the distribution of manufacturing share of GDP in 1993 and 2020."
 
 
-### Population
+# Filter the data for 1993 and 2020
+manufacturing_data_1993 <- analysis_data %>%
+  filter(year == 1993, !is.na(manufacturingsharegdp))
+
+manufacturing_data_2020 <- analysis_data %>%
+  filter(year == 2020, !is.na(manufacturingsharegdp))
+
+# Create a histogram for 1993
+plot_1993 <- ggplot(manufacturing_data_1993, aes(x = manufacturingsharegdp)) +
+  geom_histogram(binwidth = 2, fill = "steelblue", color = "black", alpha = 0.8) +
+  labs(
+    x = "Manufacturing Share of GDP (%)",
+    y = "Frequency",
+    title = "1993"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12)
+  )
+
+# Create a histogram for 2020
+plot_2020 <- ggplot(manufacturing_data_2020, aes(x = manufacturingsharegdp)) +
+  geom_histogram(binwidth = 2, fill = "steelblue", color = "black", alpha = 0.8) +
+  labs(
+    x = "Manufacturing Share of GDP (%)",
+    y = "Frequency",
+    title = "2020"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12)
+  )
+
+# Combine the two plots side by side
+plot_1993 + plot_2020
+
+```
+
+## Population
 
 Population trends provide essential context for understanding economic activity and night-time light (NTL) intensity patterns. In [@fig-pop], the total world population is shown to have grown steadily from approximately 4 billion in 1992 to over 7.5 billion by 2020. [@fig-pop2] provides a regional breakdown of average population across intervals, categorized by UN-defined SDG regions. It reveals that regions like Central and Southern Asia and Eastern and South-Eastern Asia consistently have the highest average populations, while regions like Oceania and Sub-Saharan Africa have significantly lower averages. This demographic variation is critical for analyzing NTL because densely populated regions are likely to exhibit higher light intensity due to concentrated urbanization and industrial activity. Conversely, less populated or sparsely developed regions are expected to have lower NTL levels.
 
@@ -291,7 +357,12 @@ ggplot(region_population, aes(x = region, y = avg_population, fill = interval)) 
 
 
 ```
-# Night lights and GDP
+
+
+\vspace{2cm}
+
+# Relationship Between Vairables {#sec-rel}
+## Night lights and GDP
 
 [@fig-log-dn-vs-log-gdp] plots the log of DN values against the log of GDP for all countries across 30 years, capturing the relationship between night-time light intensity and economic activity. The scatterplot shows a clear positive correlation, indicating that higher GDP values are generally associated with higher DN values.
 
@@ -317,7 +388,7 @@ ggplot(analysis_cleaned, aes(x = log(gdp), y = log(dn))) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
 ```
-In [@fig-dn-gdp-grade], we observe how this relationship between DN and GDP varies across countries with different statistical capacities. A list of countries categorized by their statistical capacity grades is given in [@tab-grades-countries-latex] of the appendix. Countries with higher statistical capacity (graded A and B) exhibit a more tightly clustered and linear relationship, indicating consistent and robust data collection processes. Conversely, countries with lower statistical capacity (graded D and F) show more scatter and variability, suggesting potential discrepancies or weaker data reliability in their national accounts. This shows the intuitive idea that the strength of the DN-GDP relationship can serve as an indicator of the reliability of a country's national statistical systems.
+In [@fig-dn-gdp-grade], we observe how this relationship between DN and GDP varies across countries with different statistical capacities. A list of countries categorized by their statistical capacity grades is given in [@fig-grades-cuntry] of the appendix. Countries with higher statistical capacity (graded A and B) exhibit a more tightly clustered and linear relationship, indicating consistent and robust data collection processes. Conversely, countries with lower statistical capacity (graded D and F) show more scatter and variability, suggesting potential discrepancies or weaker data reliability in their national accounts. This shows the intuitive idea that the strength of the DN-GDP relationship can serve as an indicator of the reliability of a country's national statistical systems.
 
 ```{r fig.width=12, fig.height=5}
 #| echo: false
@@ -345,7 +416,11 @@ ggplot(analysis_cleaned, aes(x = log(gdp), y = log(dn))) +
   )
 
 ```
-# Night lights and Population
+
+
+\newpage
+
+## Night lights and Population
 
 Larger populations naturally result in higher night-time light emissions due to increased urbanization and economic activity. Figure 1 confirms this with a clear positive relationship between population (log-transformed) and night-time light intensity (Log DN), highlighting how population size contributes to observable brightness from space.
 
@@ -374,11 +449,11 @@ ggplot(analysis_cleaned, aes(x = log(population), y = log(dn))) +
 
 ```
 
-# NTL and ith Manufacturing Share of GDP 
+## NTL and ith Manufacturing Share of GDP 
 
-[@fig-manufacturing-share-vs-dn] shows the relationship between the manufacturing share of GDP and night-time light intensity (Log DN). The plot shows a weak positive trend for countries with moderate manufacturing shares (up to 20%), where higher manufacturing activity corresponds to slightly higher DN values. However, the relationship becomes less defined for countries with very high or very low manufacturing shares, suggesting that other economic activities or structural factors might influence night-time light emissions. This indicates that while manufacturing contributes to night-time light, it is not the sole determinant, and its impact may vary across different contexts.
+[@fig-manufacturing-share-vs-dn] shows the relationship between the manufacturing share of GDP and night-time light intensity. The plot shows a weak positive trend for countries with moderate manufacturing shares (up to 20%), where higher manufacturing activity corresponds to slightly higher DN values. However, the relationship becomes less defined for countries with very high or very low manufacturing shares.This indicates that while manufacturing contributes to night-time light, it is not the sole determinant, and its impact may vary across different contexts.
 
-```{r fig.width=12, fig.height=5}
+```{r fig.width=12, fig.height=4}
 #| echo: false
 #| warning: false
 #| message: false
@@ -403,12 +478,13 @@ ggplot(analysis_cleaned, aes(x = manufacturingsharegdp, y = log(dn))) +
 
 ```
 
-# Linear Models 
+\newpage
+# Linear Models {#sec-model}
 
 In this section, we present four models to assess the relationship between Night-Time Light (NTL) intensity and various economic indicators, with a particular focus on understanding how NTL correlates with GDP and how this relationship varies across countries with differing levels of statistical capacity. A key challenge in our analysis was the high correlation between GDP, manufacturing share of GDP, and population, as highlighted in the correlation matrix provided in the appendix. This multicollinearity made it impractical to include these variables in the same model without risking inflated standard errors and unreliable coefficients. To address this, we developed separate models for each variable.
 
 The first model examines the relationship between NTL intensity and GDP, incorporating country-specific and year-specific fixed effects. The inclusion of country-specific fixed effects accounts for unobserved factors that differ across countries, such as geographic characteristics, governance structures, or cultural differences. Year-specific fixed effects are included to capture variations over time, such as global economic trends or technological advancements, that may affect the relationship between NTL and GDP.
-
+\vspace{2cm}
 $$
 \log(DN_{i,t}) = \beta_0 + \beta_1 \log(GDP_{i,t}) + \alpha_i + \gamma_t + \epsilon_{i,t}
 $$
@@ -417,9 +493,9 @@ $$
   - $alpha_i$ Country fixed effects
   - $gamma_t$ Year fixed effects
   
-
+\vspace{2cm}
 Building on the first model, the second model investigates how the relationship between NTL and GDP varies across countries with differing statistical capacities. As seen in Figure 1, the scatterplot of GDP and NTL faceted by statistical capacity suggests a weaker correlation in countries with lower statistical capacity. To explore this further, we include an interaction term between GDP and statistical capacity grade, allowing us to examine whether countries with stronger statistical systems exhibit a more consistent and robust relationship between NTL and GDP. The intuition is that higher statistical capacity is associated with better data quality and more stable economic structures, which may enhance the reliability of NTL as a proxy for economic activity. Similar to the first model, we control for year-specific and country-specific fixed effects to account for temporal and cross-country heterogeneity.
-
+\vspace{1cm}
 $$
 \log(DN_{i,t}) = \beta_0 + \beta_1 \log(GDP_{i,t}) + \beta_2 (\text{Grade}_{i}) + \beta_3 (\log(GDP_{i,t}) \times \text{Grade}_{i}) + \gamma_t + \epsilon_{i,t}
 $$
@@ -428,8 +504,10 @@ $$
   - Interaction term: $$ \log(\text{GDP}) \times \text{Grade} $$
   - $gamma_t$: Year fixed effects
 
-The third model examines the relationship between NTL intensity and population, while controlling for country and year fixed effects. Population is a key driver of light emissions, particularly in urban areas, and this model isolates its unique contribution to NTL by excluding GDP to address multicollinearity. This approach helps assess whether NTL can serve as a proxy for population, especially in regions where population data may be less reliable, while still accounting for variations across countries and years.
+\vspace{2cm}
 
+The third model examines the relationship between NTL intensity and population, while controlling for country and year fixed effects. Population is a key driver of light emissions, particularly in urban areas, and this model isolates its unique contribution to NTL by excluding GDP to address multicollinearity. This approach helps assess whether NTL can serve as a proxy for population, especially in regions where population data may be less reliable, while still accounting for variations across countries and years.
+\vspace{2cm}
 $$
 \log(DN_{i,t}) = \beta_0 + \beta_1 \log(Population_{i,t}) + \alpha_i + \gamma_t + \epsilon_{i,t}
 $$
@@ -438,8 +516,9 @@ $$
   - $alpha_i$: Country fixed effects
   - $gamma_t$: Year fixed effects
 
-The fourth model examines the relationship between NTL intensity and the manufacturing share of GDP, controlling for country and year fixed effects. Manufacturing activity, often concentrated in industrial areas, significantly influences light emissions. By isolating this variable, the model highlights how industrialization shapes NTL patterns, independent of overall GDP, while accounting for country- and time-specific factors.
 
+The fourth model examines the relationship between NTL intensity and the manufacturing share of GDP, controlling for country and year fixed effects. Manufacturing activity, often concentrated in industrial areas, significantly influences light emissions. By isolating this variable, the model highlights how industrialization shapes NTL patterns, independent of overall GDP, while accounting for country- and time-specific factors.
+\vspace{2cm}
 $$
 \log(DN_{i,t}) = \beta_0 + \beta_1 \text{Manufacturing Share}_{i,t} + \alpha_i + \gamma_t + \epsilon_{i,t}
 $$
@@ -448,28 +527,51 @@ $$
   - $alpha_i$: Country fixed effects
   - $gamma_t$: Year fixed effects
 
+\vspace{2cm} 
+\newpage
 
-# Model Summary 
+# Model Summary and Results {#sec-results}
+
 
 ```{r}
-
 #| echo: false
 #| warning: false
 #| message: false
-#| label: tbl-summodel
-#| fig-cap: "Model Summary"
+#| label: fig-modsum
+#| fig-cap: "Model Summary of Regre"
+
+knitr::include_graphics(here("others/plots/figuresandresults/modelresults.png"))
+```
+
+In the first model, we examine the relationship between Night-Time Light (NTL) intensity and GDP, controlling for country and year-specific fixed effects. The coefficient for log(GDP) is positive and significant (0.974), indicating that a 1% increase in GDP corresponds to an approximately 0.97% increase in NTL intensity on average. The R² value of 0.958 suggests that the model explains 95.8% of the variation in NTL, highlighting a strong and robust relationship. The inclusion of fixed effects ensures that unobserved heterogeneity, such as geographic or temporal factors, is accounted for.
+
+The second model builds on this by including an interaction between GDP and statistical capacity (grade) to explore whether the NTL-GDP relationship varies across countries with differing statistical capacities. While the interaction terms reveal some variation, the results do not fully align with scatterplot observations, which suggested a weaker correlation for lower-grade countries. This raises a methodological question: does it make more sense to analyze the data by running separate regressions for each grade? In @tbl-summodel2 we will look at the results of the regression when subseted by grades. We will further evaluate the appropriateness of these models in the model diagnostics section, where we will assess and compare their specifications. 
+
+In the third model, we replace GDP with population as the primary explanatory variable, again controlling for fixed effects. The positive coefficient for log(population) (0.124) suggests that a 1% increase in population corresponds to a 0.12% increase in NTL intensity. The R² value of 0.949 indicates that population is a significant predictor of NTL, albeit less dominant than GDP.
+
+Finally, the fourth model focuses on the relationship between NTL and the manufacturing share of GDP. The coefficient for manufacturing share (0.018) shows that a 1% increase in this variable is associated with a modest 0.018% increase in NTL intensity. The R² value of 0.950 reflects a strong fit, similar to the population model. This result aligns with the expectation that industrial activity significantly contributes to NTL due to the concentrated energy usage in manufacturing hubs.
 
 
-model1 <- readRDS(here("models/model1.rds"))
-model2 <- readRDS(here("models/model2.rds"))
-model3 <- readRDS(here("models/model3.rds"))
-model4 <- readRDS(here("models/model4.rds"))
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-summodel2
+#| fig-cap: "Model Summary of Regression Subseted by Grades"
+
+
+model5 <- readRDS(here("models/model_a.rds"))
+model6 <- readRDS(here("models/model_b.rds"))
+model7 <- readRDS(here("models/model_c.rds"))
+model8 <- readRDS(here("models/model_d.rds"))
+model9 <- readRDS(here("models/model_f.rds"))
 # List of your models
 models <- list(
-  model1,
-  model2,
-  model3,
-  model4
+  model5,
+  model6,
+  model7,
+  model8,
+  model9
 )
 
 # Function to clean model output by removing fixed effects
@@ -499,17 +601,33 @@ model_summary_table <- modelsummary(
 model_summary_table
 ```
 
+This table presents the regression results for the relationship between NTL intensity log(DN)  and log(GDP) for different subsets of countries based on their statistical capacity grades (A, B, C, D, F). The coefficients of log(GDP) vary significantly across grades. For Grade A countries, the coefficient is 1.091, suggesting a strong, positive relationship between NTL and GDP. The relationship remains strong for Grade B (1.124) and Grade C (1.003) but weakens notably for Grade D (0.375) and Grade F (0.723). This pattern aligns with the scatterplot observation that the correlation is weaker in countries with lower statistical capacity.
 
+The $R^2$ values indicate a high explanatory power for all grades, with the highest for Grade D (0.961), potentially due to the smaller sample size. However, the results differ substantially from the interaction model, where the coefficients for log(GDP) across grades appeared less varied. This discrepancy could arise from multicollinearity or the inability of interaction terms to fully capture grade-specific effects. Further model diagnostics, including multicollinearity checks and goodness-of-fit measures, are required to determine whether separate models or interaction terms provide a better representation of the data.
+\newpage
 
+# Discussion {#sec-disc}
 
-# Appendix
+Since the availability of NTL data, researchers have discovered diverse applications across economic, social, and environmental domains. NTL imagery serves as a critical proxy for measuring economic activity, particularly in countries where traditional statistics are unreliable or unavailable. For instance, Henderson, Storeygard, and Weil demonstrated how NTL data could adjust GDP growth estimates for countries with weak statistical systems, emphasizing its utility in refining existing economic metrics @henderson. Similarly, Chen and Nordhaus (2011) applied NTL data to recalibrate GDP per capita estimates, showcasing its value in complementing conventional economic data @chen. In many cases, particularly under authoritarian regimes, GDP estimates are often significantly inflated, distorting the perception of economic performance. Such inaccuracies can lead to misguided policy decisions and resource allocations, further exacerbating economic disparities and inefficiencies.Beyond macroeconomic analyses, NTL data have been instrumental in sub-national studies. For example, researchers have used NTL to map urban expansion, track population density, and assess regional inequalities. Studies such as those by Singhal et al. employed NTL data to estimate district-level income and socio-economic indicators, highlighting the potential of this tool for localized economic insights. @singhal Additionally, NTL data have been pivotal in capturing regional variations in infrastructure development and energy consumption, providing a novel perspective on urbanization trends @zhou.
+
+Despite its numerous advantages, the use of NTL data faces significant challenges. A primary limitation is the temporal inconsistency and calibration issues associated with DMSP-OLS data. The lack of onboard calibration and sensor degradation introduces noise, complicating year-to-year comparisons. Furthermore, DMSP-OLS data suffer from saturation effects in highly illuminated urban areas and blooming effects in suburban and rural regions, leading to under- or overestimation of activity in these zones. The newer VIIRS dataset mitigates some of these issues with higher resolution and improved calibration but lacks the long historical coverage of DMSP-OLS, making it challenging to study trends over extended periods. @zhao2019 Additionally, variations in lighting intensity are influenced by factors unrelated to economic activity, such as atmospheric conditions, seasonal variations, and cultural practices, which can distort analyses. Another critical limitation is the inability to distinguish between different light sources, such as residential, industrial, or recreational lighting, reducing the specificity of NTL as a proxy for economic activities. Lastly, while combining NTL with ancillary datasets, such as NDVI or land surface temperature, improves its accuracy, it requires significant computational resources and robust modeling techniques. Addressing these limitations through improved calibration methods, cross-sensor integration, and the development of new algorithms is essential for maximizing the utility of NTL data in future research.
+
+Reassessing the correlation between Night-Time Light (NTL) intensity and GDP is essential as advancements in satellite imaging and extended datasets offer new opportunities to refine our understanding. This study addresses a critical gap by leveraging more recent and comprehensive data to explore how the relationship between NTL and economic activity holds up across varying statistical contexts. With the increasing importance of alternative economic proxies, especially in regions where traditional metrics may be unreliable, understanding the nuances of this correlation has both academic and policy implications.
+
+The findings reaffirm the usefulness of NTL as a proxy for GDP, reflecting its capacity to capture broad patterns of economic activity. However, the variation in correlation strength across countries with different statistical capacities underscores the complexity of relying on NTL data universally. In countries with weaker statistical systems, the weaker correlation suggests potential inconsistencies in how NTL relates to economic structures or data quality issues in the official GDP figures. This highlights the dual role of NTL as both a complement to and a critique of traditional economic metrics. For policymakers, these insights emphasize the need to treat NTL as a supplementary tool rather than a standalone measure.
+
+While this study provides a valuable perspective, it also raises questions about the best methods to analyze the relationship between NTL and GDP in varied statistical contexts. The dual approach—using both interaction terms and subset regressions—offers insights but leaves open the question of which method better captures the nuances of statistical capacity differences. A deeper investigation into model selection, diagnostics, and validation is necessary to establish a framework that balances parsimony with explanatory power. Future research could explore alternative modeling strategies, such as mixed-effects models or machine learning approaches, to better capture the non-linearities and contextual differences that may underlie the observed variations.
+
+Another avenue for future exploration lies in understanding how other variables, such as energy efficiency improvements, lighting technologies, and policy changes, influence the NTL-GDP relationship over time. The role of urbanization and industrialization, both key drivers of NTL, also warrants a more detailed examination, particularly in rapidly developing regions where structural changes are likely to alter the nature of this correlation. Incorporating spatial data and finer-resolution imagery could further refine our understanding, enabling a more localized assessment of economic activity.
+\newpage
+# Appendix {#sec-app}
+
+## Countries Grouped By Statistical Capacity 
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: tab-grades-countries-latex
-#| tbl-cap: "List of Countries Grouped by Grade."
 
 # Group countries by grade and collapse into a single string
 grades_latex_table <- analysis_data %>%
@@ -519,62 +637,33 @@ grades_latex_table <- analysis_data %>%
   summarize(countries = paste(country, collapse = ", ")) %>%
   arrange(grade)
 
-# Generate LaTeX code for the table
-grades_latex_table %>%
-  knitr::kable(
-    format = "latex",
-    align = c("l", "p{10cm}"), # Use a wide column for the country list
-    col.names = c("Grade", "Countries"),
-    escape = FALSE             # Avoid escaping LaTeX special characters
-  ) %>%
-  kableExtra::kable_styling(
-    full_width = FALSE,
-    position = "center",
-    latex_options = c("striped", "hold_position")
-  )
-
 ```
 
-```{r fig.width=12, fig.height=9}
+```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: fig-man
-#| fig-cap: "Manufacturing share of GDP for countries in 2020, showing significant variation across nations, with the highest shares observed in Puerto Rico, Liechtenstein, and Ireland. Countries with higher manufacturing shares are expected to exhibit brighter night-time light intensity due to industrial activity."
+#| label: fig-grades-cuntry
+#| fig-cap: "List of Countries Grouped by Grade."
+#| out.width: 80%
+#| out.height: auto
 
-# Filter data for the year 2020 with manufacturing share of GDP >= 10%
-filtered_data_2020_high_manufacturing <- analysis_data %>%
-  filter(year == 2020, manufacturingsharegdp >= 10)
-
-# Create a bar plot for countries with manufacturing share >= 10%
-ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufacturingsharegdp), y = manufacturingsharegdp)) +
-  geom_bar(stat = "identity", fill = "steelblue", alpha = 0.8) +
-  labs(
-    x = "Country",
-    y = "Manufacturing Share of GDP (%)"
-  ) +
-  coord_flip() +  # Flip coordinates for better readability
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
-    axis.text.y = element_text(size = 8)
-  )
-
+knitr::include_graphics(here("others/plots/figuresandresults/countrygrade.png"))
 ```
+
 
 
 ```{r fig.width=12, fig.height=9}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: fig-man2
-#| fig-cap: "Manufacturing share of GDP for countries in 1992, showing significant variation across nations, with the highest shares observed in Puerto Rico, Ukrain, and Belarus."
+
 # Filter data for the year 2020 with manufacturing share of GDP >= 10%
 filtered_data_2020_high_manufacturing <- analysis_data %>%
   filter(year == 1992, manufacturingsharegdp >= 10)
 
 # Create a bar plot for countries with manufacturing share >= 10%
-ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufacturingsharegdp), y = manufacturingsharegdp)) +
+manufacturing_plot2 <- ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufacturingsharegdp), y = manufacturingsharegdp)) +
   geom_bar(stat = "identity", fill = "steelblue", alpha = 0.8) +
   labs(
     x = "Country",
@@ -588,7 +677,7 @@ ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufactu
   )
 ```
 
-
+## Correlation Between Variables 
 
 ```{r}
 #| echo: false
@@ -596,10 +685,6 @@ ggplot(filtered_data_2020_high_manufacturing, aes(x = reorder(country, manufactu
 #| message: false
 #| label: scatterplot-matrix
 #| fig-cap: "Scatterplot matrix showing pairwise relationships between key variables in the analysis_data dataset."
-
-# Load necessary library
-library(GGally)
-library(ggplot2)
 
 analysis_transformed <- analysis_data %>%
   mutate(
@@ -615,10 +700,10 @@ ggpairs(
   analysis_transformed,
   title = "Scatterplot Matrix of Key Variables",
   lower = list(
-    continuous = wrap("points", alpha = 0.4, size = 0.1) # Smaller, semi-transparent points
+    continuous = wrap("points", alpha = 0.4, size = 0.1,colour = "darkcyan") # Smaller, semi-transparent points
   ),
   diag = list(
-    continuous = wrap("barDiag", color = "white", fill = "gray50", alpha = 0.8) # Cleaner histograms
+    continuous = wrap("barDiag", color = "white", fill = "darkcyan", alpha = 0.8) # Cleaner histograms
   ),
   upper = list(
     continuous = wrap("cor", size = 4, alignPercent = 0.8) # Correlation coefficients
@@ -633,8 +718,88 @@ ggpairs(
 
 ```
 
+## Model Diagnostics 
 
+Overall, the diagnostics across all models suggest a reasonable fit, with residuals generally well-distributed around zero, indicating good adherence to linear model assumptions. For Model 1, as shown in @fig-model12 the residuals show minimal patterns, supporting the model's adequacy, while the Q-Q plot confirms approximate normality with only minor tail deviations. The Scale-Location plot indicates consistent variance, and although some high-leverage points are identified, none seem overly influential. Similarly, Model 2 as shown in @fig-model12 maintains an even spread of residuals, and its Q-Q plot shows a good fit to normality, with minor deviations in the tails. High-leverage points in Model 2 are slightly more pronounced, with one exceeding Cook’s Distance threshold, but the model remains stable overall.
 
+For Model 3, as shown in @fig-model34 the diagnostics indicate a well-fitting model with residuals showing no major patterns and Q-Q plots closely following normality. While residual variance is largely consistent, some variability is noted at higher fitted values. High-leverage points align with those observed in earlier models but do not excessively influence the results. Model 4, as shown in @fig-model34 demonstrates an acceptable fit overall, though it exhibits slightly more tail deviation in the Q-Q plot compared to the other models. The Scale-Location plot and Residuals vs. Leverage plot suggest minor issues with variability and high-leverage points, respectively, but these remain within tolerable limits.
 
+The subset models provide insights into the relationship between GDP and NTL by estimating separate regressions for each statistical capacity grade. For grades A, B, and C, the Residuals vs. Fitted plots demonstrate that the residuals are evenly distributed around zero, supporting the linear model assumption as seen in @fig-model56 and @fig-model78. Grades D and F, however, exhibit heteroskedasticity, with residual variance increasing at higher fitted values. This indicates that the model does not fully capture the variability in NTL for countries with lower statistical capacity.
 
+Q-Q plots show that residuals for grades A, B, and C adhere to normality, with only minor deviations. For grades D and F, however, there are pronounced departures in the tails, suggesting skewness or outliers. The Scale-Location plots confirm these findings, with grades D and F showing distinct heteroskedasticity. Residuals vs. Leverage plots highlight high-leverage points in all subsets, particularly for grades D and F, where countries with extreme GDP or NTL values influence the model. These findings suggest that models for countries with lower statistical capacity may require adjustments, such as robust standard errors or alternative specifications.
+
+When evaluating which model is better for assessing country-specific grades, Model 2 provides a unified framework by incorporating an interaction term between GDP and statistical capacity grade. This allows for generalizing the relationship between GDP and NTL across all grades within a single model. However, diagnostics reveal that this approach may oversimplify the heterogeneity across grades, particularly for countries with lower statistical capacity, as it assumes that the interaction term sufficiently captures all differences. In contrast, the subset models, which estimate separate regressions for each grade, highlight distinct patterns in residual variance and normality for grades D and F. These patterns are not adequately addressed by Model 2, suggesting that the subset approach may provide more accurate insights for understanding the dynamics specific to each grade. Thus, while Model 2 is better suited for examining overarching trends across grades, the subset models offer a better understanding of country-specific grade differences.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-model12
+#| fig-cap: "Diagnostic Plots for Model 1 and 2"
+
+knitr::include_graphics(here("others/plots/model_diagnostic_plots/model12.png"))
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-model34
+#| fig-cap: "Diagnostic Plots for Model 3 and 4"
+
+knitr::include_graphics(here("others/plots/model_diagnostic_plots/model34.png"))
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-model56
+#| fig-cap: "Diagnostic Plots for Model 5 and 6"
+knitr::include_graphics(here("others/plots/model_diagnostic_plots/model56.png"))
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-model78
+#| fig-cap: "Diagnostic Plots for Model 6 and 7"
+
+knitr::include_graphics(here("others/plots/model_diagnostic_plots/model78.png"))
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-model9
+#| fig-cap: "Diagnostic Plots for Model9"
+knitr::include_graphics(here("others/plots/model_diagnostic_plots/model9.png"))
+```
+
+\newpage
+# Understanding Satellite-Derived NTL Data and Measurement
+
+## Raster Data
+
+Raster data is a spatial data format that represents geographic information as a grid of cells or pixels, each with an associated value. These values can represent various phenomena, such as elevation, land cover, or light intensity. The resolution of raster data is defined by the size of each cell, with smaller cells offering finer detail. Each cell corresponds to a specific geographic area, and the value stored in it reflects a measurement or observation of that area. Raster data is commonly used in remote sensing and Geographic Information Systems (GIS) due to its compatibility with satellite imagery and other gridded datasets. It is widely used for analyzing patterns, modeling spatial phenomena, and visualizing geographic features.
+
+## NTL as Raster Data
+
+Night-Time Light (NTL) data is a specific form of raster data, collected from satellite observations that measure the intensity of artificial light emitted at night. This data is often represented in grid cells, with a typical resolution expressed in geographic units such as arc-seconds (1/3600th of a degree). Each cell in the NTL raster represents the intensity of light detected over a specific area, with higher values indicating brighter regions. NTL data typically uses dynamic radiometric calibration to adjust for atmospheric interference and sensor degradation, ensuring consistency over time. The datasets commonly used include those from the Defense Meteorological Satellite Program’s Operational Linescan System (DMSP-OLS) and the Visible Infrared Imaging Radiometer Suite (VIIRS). These datasets are crucial for creating a spatially explicit representation of human activity and infrastructure.
+
+## How Activities Translate into NTL
+
+NTL data captures a range of human activities, making it a valuable proxy for economic and social indicators. Urbanization results in bright city lights, which dominate NTL intensity in developed areas. Industrial activities contribute heavily to light emissions from factories, ports, and transport networks. Rural electrification, often reflected in lower-intensity but widespread lighting, can indicate socioeconomic development. Conversely, areas with dim or no light often signify regions lacking infrastructure or experiencing economic stagnation. Seasonal activities, such as agricultural harvests, and transient phenomena, like large gatherings or festivals, also contribute to variations in light intensity. However, the relationship between these activities and NTL is not linear; for example, bright urban centers often experience "saturation," where NTL values fail to capture variations in economic intensity accurately.
+
+## Topcoding and Its Challenges
+
+Topcoding is a process used to cap the maximum values in raster datasets, including NTL data, to prevent saturation effects. For instance, in urban centers with extremely high light intensity, raw NTL values may reach the sensor's maximum detection threshold, leading to a loss of granularity. While topcoding ensures data usability and consistency, it introduces challenges in accurately interpreting highly urbanized areas. It underestimates the variability and economic intensity of these regions, biasing analyses that depend on precise measurements of light intensity. Alternative approaches, such as using VIIRS data with a wider dynamic range or integrating ancillary datasets like land cover or economic statistics, are employed to mitigate these effects. However, these methods also have limitations, such as added complexity and reliance on external datasets.
+
+## Advances and Future Directions
+
+Advancements in satellite technology, such as onboard calibration systems and higher radiometric resolution, are reducing traditional limitations of NTL datasets. Modern sensors like VIIRS provide finer spatial and temporal resolutions, enabling more accurate monitoring of human activities. Integration of NTL data with other geospatial datasets, such as socio-demographic statistics, enhances its utility for interdisciplinary research. Future research could focus on developing methods to harmonize long-term datasets from multiple sensors, addressing issues like temporal inconsistency and cross-sensor calibration. Additionally, exploring machine learning techniques for extracting patterns from NTL data could offer new insights into urbanization, development, and disaster response. These advancements hold the promise of making NTL data even more robust and reliable for understanding global socioeconomic dynamics.
+
+\newpage
 # Reference
