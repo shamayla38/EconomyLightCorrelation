@@ -1,34 +1,10 @@
-### Preamble ###
-# Purpose: Develops regression models to analyze the relationship between night-time light (NTL) intensity and GDP, population, and manufacturing share, exploring variation across statistical capacity grades.
-# Author: Shamayla Durrin Islam
-# Date: 30 November 2024
-# Contact: shamayla.islam@mil.utoronto.ca
+#### Preamble ####
+# Purpose: Models the percentage of support for Kamala Harris in each poll as a function of various predictors.
+# Author: Shamayla Durrin
+# Date: 01/12/2024
+# Contact: shamayla.islam@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: Requires the cleaned analysis dataset with variables for GDP, population, manufacturing share, NTL, SPI, and grade. Ensure R packages `tidyverse`, `modelsummary`, and `broom` are installed for data manipulation and modeling.
-# Any other information: This script includes model diagnostics, residual analysis, and supports fixed-effects regression to control for unobserved heterogeneity.
-# 
-# Description:
-# This script builds regression models to:
-# - Quantify the relationship between NTL intensity and GDP across countries.
-# - Explore how this relationship varies by statistical capacity (grades A–F).
-# - Analyze the effects of population and manufacturing share in separate models due to multicollinearity with GDP.
-# - Perform diagnostics to validate model assumptions and check for outliers and leverage points.
-# 
-# Inputs:
-# - A cleaned dataset named `analysis_data` containing columns: country, year, gdp, population, manufacturingsharegdp, dn (NTL intensity), SPI, and grade.
-# 
-# Outputs:
-# - Model summaries saved as RDS files in the `models/` directory.
-# - Diagnostic plots saved in the `others/plots/` directory for model evaluation.
-# 
-# Workflow:
-# - Builds baseline and interaction models to assess variation in NTL-GDP correlation by grade.
-# - Performs residual analysis to validate linear regression assumptions.
-# - Compares models based on R-squared, adjusted R-squared, and diagnostic metrics.
-# 
-# Notes:
-# - Ensure that the cleaned dataset is properly formatted with no missing values in key variables.
-# - This script generates outputs to support further interpretation and visualization of modeling results.
+# Pre-requisites:
 
 #### Workspace setup ####
 library(tidyverse)
