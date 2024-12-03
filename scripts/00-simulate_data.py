@@ -1,5 +1,5 @@
 """
-Script Name: synthetic_data_generator.py
+Script Name: synsimulat_data.py
 
 Description:
     This script generates a synthetic dataset containing the following columns:
@@ -12,7 +12,7 @@ Description:
     The generated dataset is saved as a CSV file for further analysis or testing purposes.
 
 Author:
-    Shamayla Durrin Islan
+    Shamayla Durrin Islam
     shamayla.islam@mail.utoronto.ca
 
 Date:
